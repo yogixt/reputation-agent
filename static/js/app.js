@@ -766,17 +766,34 @@ function initForms() {
 function initButtons() {
     document.getElementById('btn-bulk-send').addEventListener('click', async () => {
         const btn = document.getElementById('btn-bulk-send');
+        const originalText = btn.innerHTML;
         btn.disabled = true;
+        btn.innerHTML = 'Sending...';
         try {
+            console.log('[Bulk Send] starting...');
             const res = await api('POST', '/api/sends/bulk?limit=100');
-            toast(`Bulk send complete: ${res.queued} queued, ${res.sent} sent`, 'success');
-        } catch (e) { toast(e.message, 'error'); }
-        finally { btn.disabled = false; }
+            console.log('[Bulk Send] response:', res);
+            toast(res.message || `Bulk send complete: ${res.queued} queued, ${res.sent} sent`, 'success');
+            // Refresh visible data so the user sees queue/stats update.
+            await loadDashboard();
+            if (currentPage === 'queue') await loadQueue();
+            if (currentPage === 'campaigns') await loadCampaigns();
+        } catch (e) {
+            console.error('[Bulk Send] error:', e);
+            toast(e.message || 'Bulk send failed', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
     });
 
     document.getElementById('btn-process-queue').addEventListener('click', async () => {
-        try { await api('POST', '/api/sends/process?limit=10'); toast('Queue processing started', 'info'); }
-        catch (e) { toast(e.message, 'error'); }
+        try {
+            await api('POST', '/api/sends/process?limit=10');
+            toast('Queue processing started', 'info');
+            await loadDashboard();
+            if (currentPage === 'queue') await loadQueue();
+        } catch (e) { toast(e.message, 'error'); }
     });
 }
 

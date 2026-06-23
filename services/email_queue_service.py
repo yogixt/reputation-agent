@@ -205,7 +205,10 @@ def bulk_send_all(limit: int = 100, force: bool = True) -> dict:
     Replaces per-campaign ticking when the user wants to warm up every sender
     with a single click.
     """
-    from services.campaign_service import campaign_tick_all
+    from services.campaign_service import campaign_tick_all, list_campaigns
+
+    total_campaigns = len(list_campaigns())
+    active_campaigns = db.fetchall("SELECT id FROM campaigns WHERE status = 'active'")
 
     pending_before = db.fetchone("SELECT COUNT(*) as c FROM email_queue WHERE status = 'pending'")["c"]
     sent_before = db.fetchone("SELECT COUNT(*) as c FROM email_queue WHERE status = 'sent'")["c"]
@@ -219,14 +222,23 @@ def bulk_send_all(limit: int = 100, force: bool = True) -> dict:
 
     queued = pending_after_tick - pending_before
     sent = sent_after - sent_before
-    active_campaigns = db.fetchall("SELECT id FROM campaigns WHERE status = 'active'")
+    campaigns_ticked = len(active_campaigns)
 
-    add_log("info", f"Bulk send: ticked {len(active_campaigns)} campaign(s), queued {queued}, sent {sent}", "email_queue")
+    if campaigns_ticked == 0:
+        message = "No active campaigns. Activate a campaign first."
+    elif queued == 0:
+        message = "No emails queued. Daily target may already be met."
+    else:
+        message = f"Bulk send complete: {queued} queued, {sent} sent."
+
+    add_log("info", f"Bulk send: ticked {campaigns_ticked} campaign(s), queued {queued}, sent {sent}", "email_queue")
 
     return {
-        "campaigns_ticked": len(active_campaigns),
+        "total_campaigns": total_campaigns,
+        "campaigns_ticked": campaigns_ticked,
         "queued": queued,
         "sent": sent,
+        "message": message,
     }
 
 
