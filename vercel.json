@@ -1,0 +1,42 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index" }
+  ],
+  "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/queue",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/health",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/reputation",
+      "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/advance-weeks",
+      "schedule": "5 0 * * 1"
+    },
+    {
+      "path": "/api/cron/log-cleanup",
+      "schedule": "0 2 * * *"
+    }
+  ],
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60
+    }
+  }
+}
