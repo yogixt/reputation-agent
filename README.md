@@ -2,6 +2,10 @@
 
 A production-ready email reputation warm-up platform designed for serverless deployment on Vercel. Automatically sends emails from real Gmail accounts to your peer accounts, simulates organic engagement (opens, spam-to-inbox moves, replies), and tracks reputation scores over time.
 
+**Live:** [reputation-agent-beta.vercel.app](https://reputation-agent-beta.vercel.app) (sign-in required)
+
+![Reputation Agent sign-in](docs/screenshot.png)
+
 ## Features
 
 - **Campaign Management** — Create warm-up campaigns per domain with ramp curves and schedules
